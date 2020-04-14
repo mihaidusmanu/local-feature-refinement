@@ -1,9 +1,9 @@
-# Multi-View Refinement of Local Feature Geometry
+# Multi-View Optimization of Local Feature Geometry
 
 This repository contains the implementation of the following paper:
 
 ```text
-"Multi-View Refinement of Local Feature Geometry".
+"Multi-View Optimization of Local Feature Geometry".
 M. Dusmanu, J.L. Sch\"onberger, and M. Pollefeys. arXiv 2020.
 ```
 
@@ -176,7 +176,7 @@ If you use this code in your project, please cite the following paper:
 ```bibtex
 @Article{Dusmanu2020Multi,
     author = {Dusmanu, Mihai and Sch\"onberger, Johannes L. and Pollefeys, Marc},
-    title = {{Multi-View Refinement of Local Feature Geometry}},
+    title = {{Multi-View Optimization of Local Feature Geometry}},
     journal = {arXiv},
     year = {2020},
 }
