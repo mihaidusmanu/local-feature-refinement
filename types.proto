@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+message MatchingFile {
+    message ImagePair {
+        string image_name1 = 1;
+        float fact1 = 2;
+        string image_name2 = 3;
+        float fact2 = 4;
+
+        message Match {
+            uint32 feature_idx1 = 1;
+            uint32 feature_idx2 = 2;
+            float similarity = 3;
+
+            message Displacement {
+                float di = 1;
+                float dj = 2;
+            }
+
+            repeated Displacement disp1 = 4;
+            repeated Displacement disp2 = 5;
+        }
+
+        repeated Match matches = 5;
+    }
+
+    repeated ImagePair image_pairs = 1;    
+}
+
+message SolutionFile {
+    message Image {
+        string image_name = 1;
+        float fact = 2;
+
+        message Displacement {
+            uint32 feature_idx = 1;
+
+            float di = 2;
+            float dj = 3;
+        }
+
+        repeated Displacement displacements = 3;
+    }
+
+    repeated Image images = 1;
+}
