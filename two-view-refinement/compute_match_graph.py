@@ -73,12 +73,12 @@ if __name__ == '__main__':
     # Protobuf memory limitation avoidance.
     dump_interval = 5000
 
-    # Torch settings for the matcher & patch homography estimation network.
+    # Torch settings for the matcher & two-view estimation network.
     torch.set_grad_enabled(False)
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
 
-    # Create the patch homography estimation network.
+    # Create the two-view estimation network.
     net = PANet().to(device)
 
     # Read the matching list.
