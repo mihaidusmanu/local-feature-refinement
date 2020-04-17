@@ -4,7 +4,7 @@ This repository contains the implementation of the following paper:
 
 ```text
 "Multi-View Optimization of Local Feature Geometry".
-M. Dusmanu, J.L. Sch\"onberger, and M. Pollefeys. arXiv 2020.
+M. Dusmanu, J.L. Schönberger, and M. Pollefeys. arXiv 2020.
 ```
 
 [[Paper on arXiv]](https://arxiv.org/abs/2003.08348) [Project page - coming soon] [[Qualitative results]](https://youtu.be/eH4UNwXLsyk)
