@@ -4,7 +4,7 @@ This repository contains the implementation of the following paper:
 
 ```text
 "Multi-View Optimization of Local Feature Geometry".
-M. Dusmanu, J.L. Schönberger, and M. Pollefeys. arXiv 2020.
+M. Dusmanu, J.L. Schönberger, and M. Pollefeys. European Conference on Computer Vision 2020.
 ```
 
 [[Paper on arXiv]](https://arxiv.org/abs/2003.08348) [Project page - coming soon] [[Qualitative results]](https://youtu.be/eH4UNwXLsyk)
@@ -174,10 +174,10 @@ This repository will be updated during the following months with
 
 If you use this code in your project, please cite the following paper:
 ```bibtex
-@Article{Dusmanu2020Multi,
+@InProceedings{Dusmanu2020Multi,
     author = {Dusmanu, Mihai and Sch\"onberger, Johannes L. and Pollefeys, Marc},
     title = {{Multi-View Optimization of Local Feature Geometry}},
-    journal = {arXiv},
+    booktitle = {Proceedings of the European Conference on Computer Vision},
     year = {2020},
 }
 ```
