@@ -132,7 +132,7 @@ python eth/benchmark.py --colmap_path $COLMAP_PATH --evaluation_path $EVAL_PATH 
 
 For instance, in order to evaluate SIFT on pipes, one would run:
 ```bash
-python local-feature-evaluation/benchmark.py --colmap_path $COLMAP_PATH --dataset_name pipes --method_name sift
+python eth/benchmark.py --colmap_path $COLMAP_PATH --evaluation_path $EVAL_PATH --dataset_name pipes --method_name sift
 ```
 This will produce two output files: `output/sift-pipes-ref.txt` and `output/sift-pipes-raw.txt` containing sparse triangulation accuracy and completeness for features with and without refinement, respectively.
 
