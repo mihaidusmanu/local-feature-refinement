@@ -10,12 +10,12 @@ if __name__ == '__main__':
 
     parser.add_argument(
         '--dataset_path', required=True, type=str,
-        help='path to the images'
+        help='path to the dataset'
     )
     
     args = parser.parse_args()
 
-    database_path =  os.path.join(args.dataset_path, 'database.db')
+    database_path = os.path.join(args.dataset_path, 'database.db')
 
     # Recover images from database.
     connection = sqlite3.connect(database_path)

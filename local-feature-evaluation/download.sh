@@ -37,7 +37,7 @@ tar xvzf Databases.tar.gz Gendarmenmarkt/database.db
 tar xvzf Databases.tar.gz Tower_of_London/database.db
 rm Databases.tar.gz
 
-# Download the match-lists and image-lists.
+# Download the match-lists.
 wget https://dsmn.ml/files/local-feature-refinement/LFE-match-lists.tar
 tar xvf LFE-match-lists.tar
 rm LFE-match-lists.tar

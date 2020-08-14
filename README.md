@@ -4,16 +4,18 @@ This repository contains the implementation of the following paper:
 
 ```text
 "Multi-View Optimization of Local Feature Geometry".
-M. Dusmanu, J.L. Schönberger, and M. Pollefeys. European Conference on Computer Vision 2020.
+M. Dusmanu, J.L. Schönberger, and M. Pollefeys. European Conference on Computer Vision 2020 (Oral).
 ```
 
-[[Paper on arXiv]](https://arxiv.org/abs/2003.08348) [Project page - coming soon] [[Qualitative results]](https://youtu.be/eH4UNwXLsyk)
+[[Paper on arXiv]](https://arxiv.org/abs/2003.08348) [[Project page]](https://dsmn.ml/publications/mvolfg.html) [[Qualitative results]](https://youtu.be/eH4UNwXLsyk)
     
 ## Requirements
 
 ### C++
 
-[COLMAP](https://colmap.github.io/) should be installed as a library before proceeding. Please refer to the official website for installation instructions. For the paper, we have used the `dev` branch of COLMAP at commit `f4eaade` (you can run `git checkout f4eaade` before compiling COLMAP to use the same version). The only additional requirement is `protobuf` which can be installed on Ubuntu as follows `sudo apt install protubuf-compiler libprotobuf-dev`.
+[COLMAP](https://colmap.github.io/) should be installed as a library before proceeding. Please refer to the official website for installation instructions. For the paper, we have used the `dev` branch of COLMAP at commit `f4eaade` (you can run `git checkout f4eaade` before compiling COLMAP to use the same version). **We recommend setting an environmental variable to the colmap folder by running `COLMAP_PATH=path_to_colmap_executable_folder`.**
+
+The only additional requirement is `protobuf` which can be installed on Ubuntu as follows `sudo apt install protobuf-compiler libprotobuf-dev`.
 
 Start by parsing the `proto` file and generate output for both Python and C++:
 ```bash
@@ -50,14 +52,14 @@ In order to make our evaluation reproducible regardless of updates to the reposi
 
 We used the GPU-SIFT distribution coming with COLMAP. You can use the following command to extract features:
 ```bash
-python utils/extract_features_sift.py --colmap_path path_to_colmap_executable_folder --image_path path_to_images
+python utils/extract_features_sift.py --colmap_path $COLMAP_PATH --image_path path_to_images
 ```
 
 ### [SURF](http://people.ee.ethz.ch/~surf/eccv06.pdf)
 
 We used the OpenCV implementation. You can use the following command to extract features:
 ```bash
-python extract_features_surf.py --image_path path_to_images
+python utils/extract_features_surf.py --image_path path_to_images
 ```
 
 ### [D2-Net](https://arxiv.org/abs/1905.03561)
@@ -99,20 +101,40 @@ To create the image lists, you can use the provided utility `utils/create_image_
 <details>
 <summary>Click for details...</summary>
 
-Once the multi-view refinement code was compiled successfully, the environment was created, and you made sure that you can run feature extraction, you can try out the Local Feature Evaluation Benchmark. To make sure that everything is working properly, we recommend starting on the two small datasets (Fountain and Herzjesu). You can download the datasets by running `bash local-feature-evaluation/download.sh` (3.5GB required).
+Once the multi-view refinement code was compiled successfully, the environment was created, and you made sure that you can run feature extraction, you can try out the Local Feature Evaluation Benchmark. To make sure that everything is working properly, we recommend starting on the two small datasets (Fountain and Herzjesu). You can download the datasets by running `bash local-feature-evaluation/download.sh` (~4GB required).
 
 The evaluation can be run using the following command:
 ```bash
-python local-feature-evaluation/benchmark.py --colmap_path path_to_colmap_executable_folder --dataset_name dataset_name --method_name method_name
+python local-feature-evaluation/benchmark.py --colmap_path $COLMAP_PATH --dataset_name dataset_name --method_name method_name
 ```
 
 For instance, in order to evaluate SIFT on Fountain, one would run:
 ```bash
-python local-feature-evaluation/benchmark.py --colmap_path path_to_colmap_executable_folder --dataset_name Fountain --method_name sift
+python local-feature-evaluation/benchmark.py --colmap_path $COLMAP_PATH --dataset_name Fountain --method_name sift
 ```
 This will produce two output files: `output/sift-Fountain-ref.txt` and `output/sift-Fountain-raw.txt` containing `json` objects with reconstruction statistics for features with and without refinement, respectively.
 
 Similarly to the paper, `local-feature-evaluation/compare_reconstructions.py` can be used to compare a refined reconstruction and its raw counterpart on commonly registered images only.
+
+</details>
+
+## Running the ETH3D Triangulation Benchmark
+
+<details>
+<summary>Click for details...</summary>
+
+You can download and prepare the dataset by running `bash eth/download.sh; bash eth/prepare_dataset.sh $COLMAP_PATH` (~15GB required). Please follow the official instructions to install the [ETH3D multi-view evaluation program](https://github.com/ETH3D/multi-view-evaluation). **We recommend setting an environmental variable to the evaluation folder by running `EVAL_PATH=path_to_evaluation_executable_folder`.**
+
+The evaluation can be run using the following command:
+```bash
+python eth/benchmark.py --colmap_path $COLMAP_PATH --evaluation_path $EVAL_PATH --dataset_name dataset_name --method_name method_name
+```
+
+For instance, in order to evaluate SIFT on pipes, one would run:
+```bash
+python local-feature-evaluation/benchmark.py --colmap_path $COLMAP_PATH --dataset_name pipes --method_name sift
+```
+This will produce two output files: `output/sift-pipes-ref.txt` and `output/sift-pipes-raw.txt` containing sparse triangulation accuracy and completeness for features with and without refinement, respectively.
 
 </details>
 
@@ -152,7 +174,7 @@ The list of image pairs to match `match-list.txt` can be replaced by a partial l
 
 To run the refinement pipeline followed by 3D reconstruction with both refined and raw features, you can use:
 ```bash
-python custom_demo.py --colmap_path path_to_colmap_executable_folder --dataset_name dataset_name --dataset_path path_to_dataset --method_name method_name
+python custom_demo.py --colmap_path $COLMAP_PATH --dataset_name dataset_name --dataset_path path_to_dataset --method_name method_name
 ```
 The output is the same as for the Local Feature Evaluation Benchmark. You can then use COLMAP to visualize the resulting reconstructions.
 
@@ -166,7 +188,7 @@ This repository will be updated during the following months with
 
 - [x] Local Feature Evaluation benchmark code and instructions
 - [ ] HPatches Sequences matching evaluation code and instructions
-- [ ] ETH3D triangulation evaluation code and instructions
+- [X] ETH3D triangulation evaluation code and instructions
 - [ ] ETH3D localization evaluation code and instructions
 - [ ] Training data and scripts
 

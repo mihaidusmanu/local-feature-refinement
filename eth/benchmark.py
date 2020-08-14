@@ -53,6 +53,11 @@ def parse_args():
         help='method name'
     )
 
+    parser.add_argument(
+        '--evaluation_path', type=str, required=True,
+        help='path to the evaluation executable folder'
+    )
+
     args = parser.parse_args()
     return args
 
@@ -70,14 +75,17 @@ if __name__ == '__main__':
 
     # Define extra paths.
     paths = types.SimpleNamespace()
-    paths.dataset_path = os.path.join('LFE', args.dataset_name)
+    paths.dataset_path = os.path.join('ETH3D', args.dataset_name)
+    paths.scan_file = os.path.join(paths.dataset_path, 'dslr_scan_eval', 'scan_alignment.mlp')
     paths.image_path = os.path.join(paths.dataset_path, 'images')
     paths.match_list_file = os.path.join(paths.dataset_path, 'match-list.txt')
     paths.matches_file = os.path.join('output', '%s-%s-matches.pb' % (args.method_name, args.dataset_name))
     paths.solution_file = os.path.join('output', '%s-%s-solution.pb' % (args.method_name, args.dataset_name))
+    paths.ref_ply_file = os.path.join(paths.dataset_path, 'sparse-%s-ref.ply' % args.method_name)
+    paths.raw_ply_file = os.path.join(paths.dataset_path, 'sparse-%s-raw.ply' % args.method_name)
     paths.ref_results_file = os.path.join('output', '%s-%s-ref.txt' % (args.method_name, args.dataset_name))
     paths.raw_results_file = os.path.join('output', '%s-%s-raw.txt' % (args.method_name, args.dataset_name))
-    
+
     # Compute the tentative matches graph and the two-view patch geometry estimates.
     subprocess.call([
         'python', 'two-view-refinement/compute_match_graph.py',
@@ -100,21 +108,35 @@ if __name__ == '__main__':
     
     # Run reconstruction for refined features.
     subprocess.call([
-        'python', 'reconstruction-scripts/reconstruction_pipeline.py',
+        'python', 'reconstruction-scripts/triangulation_pipeline.py',
         '--colmap_path', args.colmap_path,
         '--dataset_path', paths.dataset_path,
         '--method_name', args.method_name,
         '--matches_file', paths.matches_file,
-        '--solution_file', paths.solution_file,
-        '--output_file', paths.ref_results_file
+        '--solution_file', paths.solution_file
     ])
     
     # Run reconstruction for raw features (without refinement).
     subprocess.call([
-        'python', 'reconstruction-scripts/reconstruction_pipeline.py',
+        'python', 'reconstruction-scripts/triangulation_pipeline.py',
         '--colmap_path', args.colmap_path,
         '--dataset_path', paths.dataset_path,
         '--method_name', args.method_name,
-        '--matches_file', paths.matches_file,
-        '--output_file', paths.raw_results_file
+        '--matches_file', paths.matches_file
     ])
+
+    # Evaluate.
+    with open(paths.ref_results_file, 'w') as output_file:
+        subprocess.call([
+            os.path.join(args.evaluation_path, 'ETH3DMultiViewEvaluation'),
+            '--reconstruction_ply_path', paths.ref_ply_file,
+            '--ground_truth_mlp_path', paths.scan_file,
+            '--tolerances', '0.01,0.02,0.05,0.1,0.2,0.5'
+        ], stdout=output_file)
+    with open(paths.raw_results_file, 'w') as output_file:
+        subprocess.call([
+            os.path.join(args.evaluation_path, 'ETH3DMultiViewEvaluation'),
+            '--reconstruction_ply_path', paths.raw_ply_file,
+            '--ground_truth_mlp_path', paths.scan_file,
+            '--tolerances', '0.01,0.02,0.05,0.1,0.2,0.5'
+        ], stdout=output_file)

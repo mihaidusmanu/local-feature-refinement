@@ -1,14 +1,12 @@
 import argparse
 
-import json
-
 import os
 
 import shutil
 
 import types
 
-from colmap_utils import import_features, reconstruct
+from colmap_utils import generate_empty_reconstruction, import_features, triangulate
 
 
 def parse_args():
@@ -37,19 +35,15 @@ def parse_args():
         help='path to the multi-view optimization solution file (leave None for no refinement)'
     )
 
-    parser.add_argument(
-        '--output_file', type=str, required=True,
-        help='path to the output file'
-    )
-
     args = parser.parse_args()
     return args
 
 
-def main():
+if __name__ == "__main__":
     args = parse_args()
     refine = (args.solution_file is not None)
 
+    # Create the extra paths.
     paths = types.SimpleNamespace()
     paths.database_path = os.path.join(
         args.dataset_path, '%s-%s.db' % (args.method_name, 'ref' if refine else 'raw')
@@ -57,35 +51,45 @@ def main():
     paths.image_path = os.path.join(
         args.dataset_path, 'images'
     )
+    paths.reference_model_path = os.path.join(
+        args.dataset_path, 'dslr_calibration_undistorted'
+    )
     paths.match_list_path = os.path.join(
         args.dataset_path, 'match-list.txt'
     )
-    paths.sparse_path = os.path.join(
+    paths.empty_model_path = os.path.join(
+        args.dataset_path, 'sparse-%s-%s-empty' % (args.method_name, 'ref' if refine else 'raw')
+    )
+    paths.model_path = os.path.join(
         args.dataset_path, 'sparse-%s-%s' % (args.method_name, 'ref' if refine else 'raw')
     )
+    paths.ply_model_path = os.path.join(
+        args.dataset_path, 'sparse-%s-%s.ply' % (args.method_name, 'ref' if refine else 'raw')
+    )
 
+    # Create a copy of the dummy database.
     if os.path.exists(paths.database_path):
-        raise FileExistsError('Database file already exists.')
-    shutil.copy(
+        raise FileExistsError(
+            'The database file already exists.'
+        )
+    shutil.copyfile(
         os.path.join(args.dataset_path, 'database.db'),
         paths.database_path
     )
 
-    matching_stats = import_features(
+    # Reconstruction pipeline.
+    _ = generate_empty_reconstruction(
+        paths.reference_model_path,
+        paths.empty_model_path
+    )
+    import_features(
         args.colmap_path, args.method_name,
         paths.database_path, paths.image_path, paths.match_list_path,
         args.matches_file, args.solution_file
     )
-    reconstruction_stats = reconstruct(
+    triangulate(
         args.colmap_path,
-        paths.database_path, paths.image_path, paths.sparse_path
+        paths.database_path, paths.image_path,
+        paths.empty_model_path,
+        paths.model_path, paths.ply_model_path
     )
-
-    with open(args.output_file, 'w') as f:
-        f.write(json.dumps(matching_stats))
-        f.write('\n')
-        f.write(json.dumps(reconstruction_stats))
-
-
-if __name__ == '__main__':
-    main()
