@@ -24,6 +24,10 @@ from refinement import refine_matches_coarse_to_fine as refine_matches
 from types_pb2 import MatchingFile
 
 
+# Debug flag.
+skip_refinement = ('SKIP_REFINEMENT' in os.environ)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -143,12 +147,16 @@ if __name__ == '__main__':
                 raise NotImplementedError
 
             # Keypoint refinement.
-            grid_displacements12, grid_displacements21 = refine_matches(
-                image1, keypoints1,
-                image2, keypoints2,
-                matches,
-                net, device, args.batch_size, symmetric=True, grid=True
-            )
+            if skip_refinement:
+                grid_displacements12 = np.zeros((matches.shape[0], 3, 3, 2))
+                grid_displacements21 = np.zeros((matches.shape[0], 3, 3, 2))
+            else:
+                grid_displacements12, grid_displacements21 = refine_matches(
+                    image1, keypoints1,
+                    image2, keypoints2,
+                    matches,
+                    net, device, args.batch_size, symmetric=True, grid=True
+                )
         else:
             matches = np.zeros((0, 2))
 

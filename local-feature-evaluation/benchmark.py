@@ -7,6 +7,10 @@ import subprocess
 import types
 
 
+# Debug flag.
+skip_refinement = ('SKIP_REFINEMENT' in os.environ)
+
+
 # (
 # maximum image edge at feature extraction octave 0,
 # maximum sum of image edges at feature extraction octave 0
@@ -92,22 +96,24 @@ if __name__ == '__main__':
     ])
 
     # Run the multi-view optimization.
-    subprocess.call([
-        'multi-view-refinement/build/solve',
-        '--matches_file', paths.matches_file,
-        '--output_file', paths.solution_file
-    ])
+    if not skip_refinement:
+        subprocess.call([
+            'multi-view-refinement/build/solve',
+            '--matches_file', paths.matches_file,
+            '--output_file', paths.solution_file
+        ])
     
     # Run reconstruction for refined features.
-    subprocess.call([
-        'python', 'reconstruction-scripts/reconstruction_pipeline.py',
-        '--colmap_path', args.colmap_path,
-        '--dataset_path', paths.dataset_path,
-        '--method_name', args.method_name,
-        '--matches_file', paths.matches_file,
-        '--solution_file', paths.solution_file,
-        '--output_file', paths.ref_results_file
-    ])
+    if not skip_refinement:
+        subprocess.call([
+            'python', 'reconstruction-scripts/reconstruction_pipeline.py',
+            '--colmap_path', args.colmap_path,
+            '--dataset_path', paths.dataset_path,
+            '--method_name', args.method_name,
+            '--matches_file', paths.matches_file,
+            '--solution_file', paths.solution_file,
+            '--output_file', paths.ref_results_file
+        ])
     
     # Run reconstruction for raw features (without refinement).
     subprocess.call([
