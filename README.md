@@ -182,9 +182,9 @@ If you are using a method that's not part of our initial evaluation, don't forge
 
 </details>
 
-## Evaluating a new method without refinement
+## Benchmarking new methods without refinement
 
-The two-view refinement can be skipped completely by setting the following environmental variable `SKIP_REFINEMENT=1`. This functionality is provided for quickly evaluating new methods (before running the refinement). For instance, in order to evaluate SIFT without refinement on pipes, one would run:
+The two-view refinement can be skipped completely by setting the following environmental variable `SKIP_REFINEMENT=1`. For instance, in order to evaluate SIFT without refinement on pipes, one would run:
 ```bash
 SKIP_REFINEMENT=1 python eth/benchmark.py --colmap_path $COLMAP_PATH --evaluation_path $EVAL_PATH --dataset_name pipes --method_name sift
 ```
@@ -195,7 +195,7 @@ This repository will be updated during the following months with
 
 - [x] Local Feature Evaluation benchmark code and instructions
 - [ ] HPatches Sequences matching evaluation code and instructions
-- [X] ETH3D triangulation evaluation code and instructions
+- [x] ETH3D triangulation evaluation code and instructions
 - [ ] ETH3D localization evaluation code and instructions
 - [ ] Training data and scripts
 

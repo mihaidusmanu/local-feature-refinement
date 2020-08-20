@@ -1,5 +1,6 @@
 __pycache__
 .vscode
+paths.sh
 multi-view-refinement/build
 types_pb2.py
 types.pb.cc
