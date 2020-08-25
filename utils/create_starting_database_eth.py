@@ -37,12 +37,17 @@ def parse_empty_reconstruction(dummy_database_path, reference_model_path):
         for raw_camera_info in lines:
             raw_camera_info = raw_camera_info.strip('\n').split(' ')
             camera_id = int(raw_camera_info[0])
-            assert(raw_camera_info[1] == 'PINHOLE')
             camera_params = np.array(list(map(float, raw_camera_info[2 :])))
-            cursor.execute(
-                'INSERT INTO cameras(camera_id, model, width, height, params, prior_focal_length) VALUES(?, ?, ?, ?, ?, ?);',
-                (camera_id, 1, camera_params[0], camera_params[1], array_to_blob(camera_params[2 :].astype(np.float64)), 1)
-            )
+            if raw_camera_info[1] == 'PINHOLE':
+                cursor.execute(
+                    'INSERT INTO cameras(camera_id, model, width, height, params, prior_focal_length) VALUES(?, ?, ?, ?, ?, ?);',
+                    (camera_id, 1, camera_params[0], camera_params[1], array_to_blob(camera_params[2 :].astype(np.float64)), 1)
+                )
+            else:
+                cursor.execute(
+                    'INSERT INTO cameras(camera_id, model, width, height, params, prior_focal_length) VALUES(?, ?, ?, ?, ?, ?);',
+                    (camera_id, 0, camera_params[0], camera_params[1], array_to_blob(camera_params[2 :].astype(np.float64)), 1)
+                )
 
     with open(os.path.join(reference_model_path, 'images.txt')) as images_file:
         lines = images_file.readlines()
