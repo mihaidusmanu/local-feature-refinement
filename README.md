@@ -138,6 +138,26 @@ This will produce two output files: `output/sift-pipes-ref.txt` and `output/sift
 
 </details>
 
+## Running the ETH3D Localization Benchmark
+
+<details>
+<summary>Click for details...</summary>
+
+Please follow the instruction from above to download and prepare the ETH3D dataset. For this benchmark, you will also need [PyCOLMAP](https://github.com/mihaidusmanu/pycolmap) - please follow the installation instruction on the official github README.
+
+The evaluation can be run using the following command:
+```bash
+python eth/benchmark_localization.py --colmap_path $COLMAP_PATH --evaluation_path $EVAL_PATH --dataset_name dataset_name --method_name method_name
+```
+
+For instance, in order to evaluate SIFT on pipes, one would run:
+```bash
+python eth/benchmark_localization.py --colmap_path $COLMAP_PATH --evaluation_path $EVAL_PATH --dataset_name pipes --method_name sift
+```
+This will produce two output files: `output/sift-pipes-ref.loc.txt` and `output/sift-pipes-raw.loc.txt` containing camera pose errors for 10 randomly sampled images (note that the seed is fixed between runs to produce consistent results).
+
+</details>
+
 ## Running in a custom scenario
 
 <details>
