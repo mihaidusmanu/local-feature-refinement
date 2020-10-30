@@ -78,9 +78,6 @@ if __name__ == '__main__':
     paths.image_path = os.path.join(paths.dataset_path, 'images')
     paths.match_list_file = os.path.join(paths.dataset_path, 'match-list.txt')
     paths.matches_file = os.path.join('output', '%s-%s-matches.pb' % (args.method_name, args.dataset_name))
-    paths.solution_file = os.path.join('output', '%s-%s-solution.pb' % (args.method_name, args.dataset_name))
-    paths.ref_ply_file = os.path.join(paths.dataset_path, 'sparse-%s-ref.ply' % args.method_name)
-    paths.raw_ply_file = os.path.join(paths.dataset_path, 'sparse-%s-raw.ply' % args.method_name)
     paths.ref_results_file = os.path.join('output', '%s-%s-ref.loc.txt' % (args.method_name, args.dataset_name))
     paths.raw_results_file = os.path.join('output', '%s-%s-raw.loc.txt' % (args.method_name, args.dataset_name))
 

@@ -216,7 +216,7 @@ This repository will be updated during the following months with
 - [x] Local Feature Evaluation benchmark code and instructions
 - [ ] HPatches Sequences matching evaluation code and instructions
 - [x] ETH3D triangulation evaluation code and instructions
-- [ ] ETH3D localization evaluation code and instructions
+- [x] ETH3D localization evaluation code and instructions
 - [ ] Training data and scripts
 
 ## BibTeX
