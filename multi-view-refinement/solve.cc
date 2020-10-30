@@ -382,7 +382,7 @@ int main(int argc, char** argv) {
         ("matches_file", po::value<std::string>()->required(), "path to the matches file")
         ("output_file", po::value<std::string>()->required(), "path to the output file")
         ("n_threads", po::value<size_t>()->default_value(size_t(8), "8"), "# threads")
-        ("banned_images", po::value<std::vector<std::string>>()->default_value(std::vector<std::string>(), "{}"), "banned images");
+        ("holdout_images", po::value<std::vector<std::string>>()->default_value(std::vector<std::string>(), "{}"), "holdout images");
     
     po::variables_map args; 
     try { 
@@ -400,7 +400,7 @@ int main(int argc, char** argv) {
       return 1; 
     }
 
-    std::set<std::string> banned_images(args["banned_images"].as<std::vector<std::string>>().begin(), args["banned_images"].as<std::vector<std::string>>().end());
+    std::set<std::string> holdout_images(args["holdout_images"].as<std::vector<std::string>>().begin(), args["holdout_images"].as<std::vector<std::string>>().end());
 
     // Define the graph.
     graph_map nodes;
@@ -441,7 +441,7 @@ int main(int argc, char** argv) {
             std::string image_name1 = image_pair.image_name1();
             std::string image_name2 = image_pair.image_name2();
 
-            if (banned_images.find(image_name1) != banned_images.end() || banned_images.find(image_name2) != banned_images.end()) {
+            if (holdout_images.find(image_name1) != holdout_images.end() || holdout_images.find(image_name2) != holdout_images.end()) {
                 continue;
             }
 
