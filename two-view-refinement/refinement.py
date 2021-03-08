@@ -35,7 +35,7 @@ def extract_patches(image, ij, device, patch_size=33):
     full_ij = norm_ij.view(-1, 1, 1, 2) + grid_patch
 
     patches = F.grid_sample(
-        image.unsqueeze(0), full_ij[:, :, :, [1, 0]].view(1, -1, patch_size, 2),
+        image.unsqueeze(0), full_ij[:, :, :, [1, 0]].reshape(1, -1, patch_size, 2),
         padding_mode='reflection', align_corners=True
     ).squeeze(0)
     patches = patches.view(c, -1, patch_size, patch_size).permute([1, 0, 2, 3])
