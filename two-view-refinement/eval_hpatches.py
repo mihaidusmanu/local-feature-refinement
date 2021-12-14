@@ -62,6 +62,10 @@ if __name__ == '__main__':
         help='Only use top_k scored descriptors. Default is -1 (None).'
     )
     parser.add_argument(
+        '--skip_refinement', action='store_true',
+        help='if skip using patch flow to refine the matches'
+    )
+    parser.add_argument(
         '--batch_size', type=int, default=1024,
         help='batch size'
     )
@@ -100,7 +104,7 @@ if __name__ == '__main__':
         fact = max(1, max(image.shape) / max_edge, sum(image.shape[: -1]) / max_sum_edges)
         keypoints *= 1 / fact
 
-        return keypoints, descriptors
+        return image, keypoints, descriptors
 
     
     # Torch settings for the matcher & two-view estimation network.
@@ -108,13 +112,16 @@ if __name__ == '__main__':
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda:0" if use_cuda else "cpu")
 
+    # Create the two-view estimation network.
+    net = PANet().to(device)
+
     # hyper parameters for hpatches
     n_i = 52
     n_v = 56
     if args.top_k == -1:
         top_k = None
     elif args.top_k > 0:
-        top_k = arg.top_k
+        top_k = args.top_k
     else:
         raise ValueError('top_k value {} misspecified. Use -1 or positive integers.'.format(args.top_k))
     matcher = str(matcher_dict[args.method_name][0])
@@ -130,11 +137,11 @@ if __name__ == '__main__':
 
     seq_names = sorted(os.listdir(paths.dataset_path))
     for seq_idx, seq_name in tqdm(enumerate(seq_names), total=len(seq_names)):
-        keypoints_a, descriptors_a = read_feats(seq_name, 1, top_k)
+        image_a, keypoints_a, descriptors_a = read_feats(seq_name, 1, top_k)
         n_feats.append(keypoints_a.shape[0])
 
         for im_idx in range(2, 7):
-            keypoints_b, descriptors_b = read_feats(seq_name, im_idx, top_k)
+            image_b, keypoints_b, descriptors_b = read_feats(seq_name, im_idx, top_k)
             n_feats.append(keypoints_b.shape[0])
 
             if matcher == 'similarity':
@@ -151,7 +158,35 @@ if __name__ == '__main__':
                 )
             else:
                 raise NotImplementedError
+
+            # Keypoint refinement.
+            if args.skip_refinement:
+                displacements_ab = np.zeros((matches.shape[0], 2))
+                displacements_ba = np.zeros((matches.shape[0], 2))
+            else:
+                displacements_ab, displacements_ba = refine_matches(
+                    image_a, keypoints_a,
+                    image_b, keypoints_b,
+                    matches,
+                    net, device, args.batch_size, symmetric=True, grid=False
+                )
+
+            # print('grid displacement ba shape: ', grid_displacements_ba.shape)
+            # print('grid displacement ab shape: ', grid_displacements_ab.shape)
+
+            # refine keypoints for image a
+            dx_a = displacements_ba[:, 1]
+            dy_a = displacements_ba[:, 0]
+            keypoints_a[matches[:, 0], 0] += dx_a
+            keypoints_a[matches[:, 0], 1] += dy_a
+
+            # refine keypoints for image b
+            dx_b = displacements_ab[:, 1]
+            dy_b = displacements_ab[:, 0]
+            keypoints_b[matches[:, 1], 0] += dx_b
+            keypoints_b[matches[:, 1], 1] += dy_b
             
+            # get ground truth homography
             homography = np.loadtxt(os.path.join(paths.dataset_path, seq_name, "H_1_" + str(im_idx)))
             
             # print('matches shape: ',matches.shape)
@@ -241,7 +276,11 @@ if __name__ == '__main__':
     plt.grid()
     plt.tick_params(axis='both', which='major', labelsize=20)
 
-    if top_k is None:
-        plt.savefig('hseq_{}.png'.format(args.method_name), bbox_inches='tight', dpi=300)
-    else:
-        plt.savefig('hseq-top_{}_{}.png'.format(args.top_k, args.method_name), bbox_inches='tight', dpi=300)
+    # save fig
+    savefig_name = 'hseq_{}'.format(args.method_name)
+    if top_k is not None:
+        savefig_name += '_top_{}'.format(args.top_k)
+    if not args.skip_refinement:
+        savefig_name += '_refined'
+
+    plt.savefig(savefig_name + '.png', bbox_inches='tight', dpi=300)
