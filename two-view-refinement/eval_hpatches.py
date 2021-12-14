@@ -12,6 +12,10 @@ import torch
 
 from tqdm import tqdm
 
+import matplotlib
+
+import matplotlib.pyplot as plt
+
 import types
 
 from feature_matchers import mnn_similarity_matcher, mnn_ratio_matcher
@@ -45,52 +49,22 @@ matcher_dict = {
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-
-    # parser.add_argument(
-    #     '--image_path', type=str, required=True,
-    #     help='path to the images'
-    # )
     parser.add_argument(
         '--dataset_name', type=str, required=True,
         help='name of the dataset'
     )
-    # parser.add_argument(
-    #     '--max_edge', type=int, defaul=True,
-    #     help='maximum image size at feature extraction octave 0'
-    # )
-    # parser.add_argument(
-    #     '--max_sum_edges', type=int, required=True,
-    #     help='maximum sum of image sizes at feature extraction octave 0'
-    # )
-
-    # parser.add_argument(
-    #     '--match_list_file', type=str, required=True,
-    #     help='matching list file'
-    # )
-
     parser.add_argument(
         '--method_name', type=str, required=True,
         help='name of the method'
     )
-
-    # parser.add_argument(
-    #     '--output_file', type=str, required=True,
-    #     help='output file'
-    # )
-
+    parser.add_argument(
+        '--top_k', type=int, default=-1,
+        help='Only use top_k scored descriptors. Default is -1 (None).'
+    )
     parser.add_argument(
         '--batch_size', type=int, default=1024,
         help='batch size'
     )
-
-    # parser.add_argument(
-    #     '--matcher', type=str, required=True,
-    #     help='matcher (possible values: "similarity", "ratio")'
-    # )
-    # parser.add_argument(
-    #     '--threshold', type=float, required=True,
-    #     help='threshold for matchers (either Lowe\'s ratio threshold or similarity threshold)'
-    # )
     args = parser.parse_args()
 
     # Define extra paths.
@@ -104,13 +78,20 @@ if __name__ == '__main__':
     paths.raw_results_file = os.path.join('output', '%s-%s-raw.txt' % (args.method_name, args.dataset_name))
 
 
-    def read_feats(seq_name, img_idx):
+    def read_feats(seq_name, img_idx, top_k=None):
         # Load the features.
+        # keypoints are in 2d coordinates (non-homogenous)
         features = np.load(os.path.join(paths.dataset_path,
             seq_name, '%s.%s.%s' % (img_idx, 'ppm', args.method_name)
         ), allow_pickle=True)
-        keypoints = features['keypoints'][:, : 2]
-        descriptors = features['descriptors']
+        if top_k is None:
+            keypoints = features['keypoints'][:, : 2]
+            descriptors = features['descriptors']
+        else:
+            assert('scores' in features)
+            ids = np.argsort(features['scores'])[-top_k :]
+            keypoints = features['keypoints'][ids, : 2]
+            descriptors = features['descriptors'][ids, :]        
 
         # Downscale keypoints to the feature extraction resolution.
         max_edge = max_size_dict[args.method_name][0]
@@ -130,6 +111,12 @@ if __name__ == '__main__':
     # hyper parameters for hpatches
     n_i = 52
     n_v = 56
+    if args.top_k == -1:
+        top_k = None
+    elif args.top_k > 0:
+        top_k = arg.top_k
+    else:
+        raise ValueError('top_k value {} misspecified. Use -1 or positive integers.'.format(args.top_k))
     matcher = str(matcher_dict[args.method_name][0])
     threshold = matcher_dict[args.method_name][1]
 
@@ -143,11 +130,11 @@ if __name__ == '__main__':
 
     seq_names = sorted(os.listdir(paths.dataset_path))
     for seq_idx, seq_name in tqdm(enumerate(seq_names), total=len(seq_names)):
-        keypoints_a, descriptors_a = read_feats(seq_name, 1)
+        keypoints_a, descriptors_a = read_feats(seq_name, 1, top_k)
         n_feats.append(keypoints_a.shape[0])
 
         for im_idx in range(2, 7):
-            keypoints_b, descriptors_b = read_feats(seq_name, im_idx)
+            keypoints_b, descriptors_b = read_feats(seq_name, im_idx, top_k)
             n_feats.append(keypoints_b.shape[0])
 
             if matcher == 'similarity':
@@ -169,12 +156,12 @@ if __name__ == '__main__':
             
             # print('matches shape: ',matches.shape)
             # print('keypoint shape: ', keypoints_a.shape)
-            pos_a = keypoints_a[matches[:, 0], : 2] 
+            pos_a = keypoints_a[matches[:, 0], :] 
             pos_a_h = np.concatenate([pos_a, np.ones([matches.shape[0], 1])], axis=1)
             pos_b_proj_h = np.transpose(np.dot(homography, np.transpose(pos_a_h)))
             pos_b_proj = pos_b_proj_h[:, : 2] / pos_b_proj_h[:, 2 :]
 
-            pos_b = keypoints_b[matches[:, 1], : 2]
+            pos_b = keypoints_b[matches[:, 1], :]
 
             dist = np.sqrt(np.sum((pos_b - pos_b_proj) ** 2, axis=1))
 
@@ -194,10 +181,67 @@ if __name__ == '__main__':
     n_feats = np.array(n_feats)
     n_matches = np.array(n_matches)
 
-    # error summary
+    # summary
     print('# Features: {:f} - [{:d}, {:d}]'.format(np.mean(n_feats), np.min(n_feats), np.max(n_feats)))
     print('# Matches: Overall {:f}, Illumination {:f}, Viewpoint {:f}'.format(
         np.sum(n_matches) / ((n_i + n_v) * 5), 
         np.sum(n_matches[seq_type == 'i']) / (n_i * 5), 
         np.sum(n_matches[seq_type == 'v']) / (n_v * 5))
     )
+
+    # save error statistics cache
+    if top_k is None:
+        cache_dir = 'cache'
+    else:
+        cache_dir = 'cache-top'
+    if not os.path.isdir(cache_dir):
+        os.mkdir(cache_dir)
+
+    output_file = os.path.join(cache_dir, args.method_name + '.npy')
+    if not os.path.exists(output_file):
+        np.save(output_file, (i_err, v_err, [seq_type, n_feats, n_matches]))
+
+    # plot MMA graph
+    plt_lim = [1, 10]
+    plt_rng = np.arange(plt_lim[0], plt_lim[1] + 1)
+    plt.rc('axes', titlesize=25)
+    plt.rc('axes', labelsize=25)
+
+    plt.figure(figsize=(15, 5))
+
+    plt.subplot(1, 3, 1)
+    plt.plot(plt_rng, [(i_err[thr] + v_err[thr]) / ((n_i + n_v) * 5) for thr in plt_rng], linewidth=3, label=args.method_name)
+    plt.title('Overall')
+    plt.xlim(plt_lim)
+    plt.xticks(plt_rng)
+    plt.ylabel('MMA')
+    plt.ylim([0, 1])
+    plt.grid()
+    plt.tick_params(axis='both', which='major', labelsize=20)
+    plt.legend()
+
+    plt.subplot(1, 3, 2)
+    plt.plot(plt_rng, [i_err[thr] / (n_i * 5) for thr in plt_rng], linewidth=3, label=args.method_name)
+    plt.title('Illumination')
+    plt.xlabel('threshold [px]')
+    plt.xlim(plt_lim)
+    plt.xticks(plt_rng)
+    plt.ylim([0, 1])
+    plt.gca().axes.set_yticklabels([])
+    plt.grid()
+    plt.tick_params(axis='both', which='major', labelsize=20)
+
+    plt.subplot(1, 3, 3)
+    plt.plot(plt_rng, [v_err[thr] / (n_v * 5) for thr in plt_rng], linewidth=3, label=args.method_name)
+    plt.title('Viewpoint')
+    plt.xlim(plt_lim)
+    plt.xticks(plt_rng)
+    plt.ylim([0, 1])
+    plt.gca().axes.set_yticklabels([])
+    plt.grid()
+    plt.tick_params(axis='both', which='major', labelsize=20)
+
+    if top_k is None:
+        plt.savefig('hseq_{}.png'.format(args.method_name), bbox_inches='tight', dpi=300)
+    else:
+        plt.savefig('hseq-top_{}_{}.png'.format(args.top_k, args.method_name), bbox_inches='tight', dpi=300)
