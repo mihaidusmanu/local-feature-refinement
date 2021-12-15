@@ -1,3 +1,5 @@
+# The code is adpated from d2-net's evaluation script on HPatches
+
 import argparse
 
 import cv2
@@ -32,7 +34,6 @@ max_size_dict = {
     'r2d2': (1600, 3200),
     'superpoint': (1600, 2800),
 }
-
 
 # (
 # type of matcher,
@@ -171,9 +172,6 @@ if __name__ == '__main__':
                     net, device, args.batch_size, symmetric=True, grid=False
                 )
 
-            # print('grid displacement ba shape: ', grid_displacements_ba.shape)
-            # print('grid displacement ab shape: ', grid_displacements_ab.shape)
-
             # refine keypoints for image a
             dx_a = displacements_ba[:, 1]
             dy_a = displacements_ba[:, 0]
@@ -189,13 +187,11 @@ if __name__ == '__main__':
             # get ground truth homography
             homography = np.loadtxt(os.path.join(paths.dataset_path, seq_name, "H_1_" + str(im_idx)))
             
-            # print('matches shape: ',matches.shape)
-            # print('keypoint shape: ', keypoints_a.shape)
+            # calculate pixel losses for predicted correspondence
             pos_a = keypoints_a[matches[:, 0], :] 
             pos_a_h = np.concatenate([pos_a, np.ones([matches.shape[0], 1])], axis=1)
             pos_b_proj_h = np.transpose(np.dot(homography, np.transpose(pos_a_h)))
             pos_b_proj = pos_b_proj_h[:, : 2] / pos_b_proj_h[:, 2 :]
-
             pos_b = keypoints_b[matches[:, 1], :]
 
             dist = np.sqrt(np.sum((pos_b - pos_b_proj) ** 2, axis=1))
