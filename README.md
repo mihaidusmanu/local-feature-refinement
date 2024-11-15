@@ -7,7 +7,7 @@ This repository contains the implementation of the following paper:
 M. Dusmanu, J.L. Schönberger, and M. Pollefeys. European Conference on Computer Vision 2020 (Oral).
 ```
 
-[[Paper on arXiv]](https://arxiv.org/abs/2003.08348) [[Project page]](https://dsmn.ml/publications/mvolfg.html) [[Qualitative results]](https://youtu.be/eH4UNwXLsyk)
+[[Paper on arXiv]](https://arxiv.org/abs/2003.08348) [[Project page]](https://dusmanu.com/publications/mvolfg.html) [[Qualitative results]](https://youtu.be/eH4UNwXLsyk)
     
 ## Requirements
 
