@@ -1,8 +1,8 @@
 # Create data directory.
-mkdir LFE
+mkdir /data/LFE
 
 # cd into data directory.
-cd LFE
+cd /data/LFE
 
 # Download Strecha datasets.
 wget http://cvg.ethz.ch/research/local-feature-evaluation/Strecha-Fountain.zip
@@ -28,6 +28,23 @@ wget http://landmark.cs.cornell.edu/projects/1dsfm/images.Tower_of_London.tar
 tar xvf images.Tower_of_London.tar
 rm images.Tower_of_London.tar
 
+# Download HPatches datasets
+wget http://icvl.ee.ic.ac.uk/vbalnt/hpatches/hpatches-sequences-release.tar.gz
+tar xvzf hpatches-sequences-release.tar.gz
+
+# Remove the high-resolution sequences
+cd hpatches-sequences-release
+rm -rf i_contruction i_crownnight i_dc i_pencils i_whitebuilding v_artisans v_astronautis v_talent
+cd ..
+
+# wget http://icvl.ee.ic.ac.uk/vbalnt/hpatches/hpatches-release.tar.gz
+# tar xvzf hpatches-release.tar.gz
+# # Remove the high-resolution sequences
+# cd hpatches-release
+# rm -rf i_contruction i_crownnight i_dc i_pencils i_whitebuilding v_artisans v_astronautis v_talent
+# cd ..
+
+
 # Download empty databases.
 wget http://cvg.ethz.ch/research/local-feature-evaluation/Databases.tar.gz
 tar xvzf Databases.tar.gz Fountain/database.db
@@ -43,4 +60,7 @@ tar xvf LFE-match-lists.tar
 rm LFE-match-lists.tar
 
 # cd out of data directory.
-cd ..
+cd /home/devs/local-feature-refinement
+
+# create soft link
+ln -s /data/LFE /home/devs/local-feature-refinement/LFE

@@ -118,6 +118,36 @@ Similarly to the paper, `local-feature-evaluation/compare_reconstructions.py` ca
 
 </details>
 
+## Running Two-View-Refinement Benchmark on HPatches Dataset
+
+<details>
+<summary>Click for details...</summary>
+
+The download of HPatches dataset is included in the `local-feature-evaluation/download.sh`. It follows the d2-net instructions for filtering out the high resolution sequences. 
+
+Since HPatches dataset has many sequences, we need to extract features for all subdirectories before running refinement. To do that, run
+
+```bash
+python utils/extract_features_all_subdirectories.py --directory_path LFE/hpatches-sequences-release --method_name method_name
+```
+
+For instance, in order to extract SURF features on all subdirectories of HPatches, run
+
+```bash
+python utils/extract_features_all_subdirectories.py --directory_path LFE/hpatches-sequences-release --method_name surf
+```
+
+After preparing the dataset and extracting the features, to run the two-view-refinement bench:
+
+```bash
+python two-view-refinement/eval_hpatches.py --dataset_name hpatches-sequences-release --method_name surf
+```
+As before, you can replace SURF with any other local supported in this repo as `--method_name`. If you want to skip the patch-flow refinement, you can add `--skip_refinement` flag.
+
+The output will be an image with MMA evaluation, and also a `.npy` file containing the error statistics summary in the `cache` folder.
+
+</details>
+
 ## Running the ETH3D Triangulation Benchmark
 
 <details>

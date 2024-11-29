@@ -8,3 +8,5 @@ types.pb.h
 output
 LFE
 ETH3D
+cache*
+*.png
